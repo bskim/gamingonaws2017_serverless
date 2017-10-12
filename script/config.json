@@ -1,0 +1,11 @@
+{
+    "bucketname":"<bucketname>",
+    "uploadprefix":"update",
+    "region":"ap-northeast-2",
+    "api_url":"<invoke_url>/<resource_path>",
+    "IdentityPoolId":"<uuid style IdentityPoolId>",
+    "cloudfrontDistributionId":"<14character cloudfront distributionid>",
+    "cloudfrontURL":"http://<cloudfront distribution domain name>/",
+    "scorehistory_api_url":"https://<scorehistory API invoke url>/scorehisto",
+    "score_api_url":"https://<scoreboard API invoke url>/scoreboard"
+}

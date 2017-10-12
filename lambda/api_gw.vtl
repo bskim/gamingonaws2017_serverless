@@ -1,0 +1,4 @@
+{
+    "querystring" : "#foreach($key in $input.params().querystring.keySet())#if($foreach.index > 0)&#end$util.urlEncode($key)=$util.urlEncode($input.params().querystring.get($key))#end",
+    "body" : $input.json('$')
+}

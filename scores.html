@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+svg {
+  font: 10px sans-serif;
+}
+
+line.bin {
+  stroke: #000;
+  stroke-width: 3px;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="./script/scores.js"></script>
+<script>
+
+var margin = {top: 10, right: 20, bottom: 20, left: 60},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+	
+$.get(scorehistory_api_url, function(data, status){
+
+  var bins = data;
+  console.log(bins);
+	
+	 // Coerce types.
+  bins.forEach(function(bin) {
+    bin.score = +bin.score;
+    bin.totalcount = +bin.totalcount;
+  });
+
+  // Set the scale domains.
+  x.domain([0, d3.max(bins.map(function(d) { return d.score; }))]).nice();
+  y.domain([0, d3.max(bins.map(function(d) { return d.totalcount; }))]).nice();
+
+  // Add the bins.
+  svg.selectAll(".bin")
+      .data(bins)
+    .enter().append("line")
+      .attr("class", "bin")
+      .attr("x1", function(d) { return x(d.score); })
+      .attr("x2", function(d) { return x(d.score); })
+      .attr("y1", height)
+      .attr("y2", function(d) { return y(d.totalcount); });
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.svg.axis()
+      .scale(x)
+      .orient("bottom"));
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(d3.svg.axis()
+      .scale(y)
+      .orient("left"));
+					
+});
+
+</script>
+
+<!--p>
+	<a href="game.html">Back to the Main</a>
+</body-->
+

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width"/>
+<title>Login Demo - Kakao JavaScript SDK</title>
+<!--script src=compat.js></script-->
+<script src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="./script/OAuth.js"></script>
+
+</head>
+<body>
+    <div>
+        <a id="custom-login-btn" href="javascript:loginWithKakao(loginWithCognito)"><img src="//mud-kage.kakao.com/14/dn/btqbjxsO6vP/KPiGpdnsubSq3a0PHEGUK1/o.jpg" width="300"/></a>
+        <a href="http://developers.kakao.com/logout"></a>
+        <script type='text/javascript'>
+            //import CONFIG from './script/OAuth.json'
+            var KakaoAppId= CONFIG.KakaoAppId
+            var API_URL= CONFIG.API_URL
+            function loginWithCognito(kakaoid,access_token,expires_in){
+                var cognitoURL = API_URL+ "?id="+kakaoid +"&access_token=" + access_token + "&expires_in=" + expires_in;
+                $.getJSON(cognitoURL, function(json){
+                    $("#cognito-token").append(json.Token);
+                    //window.top.postMessage({"msg_key":"cognito_token", "val":json.Token},'*')
+                  });
+
+            }
+            Kakao.init(KakaoAppId); // replace you application ID
+            var kakaoid =''
+            function loginWithKakao(callback) {
+              // 로그인 창을 띄웁니다.
+              Kakao.Auth.login({
+                success: function(authObj) {
+                  //alert(JSON.stringify(authObj));
+                  var access_token = authObj.access_token;
+                  var expires_in = authObj.expires_in;
+                  
+                  Kakao.API.request({
+                    url: '/v1/user/me',
+                    success: function(res){
+                      console.log(res)
+                      kakaoid =res.id
+                      window.top.postMessage({"msg_key":"kakao_user_profile","val":res},'*')
+                      $("#kakao-user").append(JSON.stringify(res));
+                      if (callback!=undefined)
+                      {
+                        callback(kakaoid,access_token,expires_in)
+                      }
+                    }
+                  })
+                  //replace it to your api gateway rul
+                  $("#kakao-token").append(authObj.access_token);
+                  window.top.postMessage({"msg_key":"kakao_token", "val":{"access_token":authObj.access_token,"expires_in":authObj.expires_in}},'*');                  
+                  
+                },
+                fail: function(err) {
+                  alert(JSON.stringify(err));
+                }
+              });
+            };
+
+            window.onmessage = function(e){
+              if (e.data == "kakao_login")
+              {
+                loginWithKakao();
+              }
+            }
+          //]]>
+        </script>
+        <br>
+        <hr>
+        Kakao Login Token: <div id="kakao-token"></div> <hr>
+        Kakao User string: <div id="kakao-user"></div> <hr>
+        Cognito Access Token: <div id="cognito-token"></div> <br>
+    </div>
+</body>
+
+</html>

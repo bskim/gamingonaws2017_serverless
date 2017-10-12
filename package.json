@@ -1,0 +1,16 @@
+{
+    "name": "gamingonaws",
+    "main": "index.html",
+    "dependencies": {
+        "amazon-cognito-js": "^1.1.0",
+        "aws-sdk": "^2.108.0",
+        "base64-js": "^1.2.1",
+        "download-file": "^0.1.5",
+        "lodash": "^4.17.4",
+        "md5-file": "^3.2.2",
+        "node-async-loop": "^1.2.2",
+        "node-dir": "^0.1.17",
+        "punycode": "^2.1.0"
+    },
+    "version": "0.0.1"
+}
