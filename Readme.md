@@ -434,7 +434,7 @@ exports.handler = (event, context) => {
 11.  Deploy가 완료되면 API Gateway의 Invoke URL이 나옵니다.
     ![](media/image40.png)
 
-12.  Endpoint URL을 기록해둡니다. (만약 API를 root가 아닌 별도의 이름으로
+12.  Invoke URL을 기록해둡니다. (만약 API를 root가 아닌 별도의 resource path로
     설정하였다면, /prod 뒤에 해당 API의 resource path까지 붙여서 기록해둡니다.)
 
 카카오 인증 테스트하기
@@ -744,7 +744,7 @@ var AWS = require('aws-sdk');
 var DOC = require('dynamodb-doc');
 var dynamo = new DOC.DynamoDB();
 
-exports.handler = function(event, context) 
+exports.handler = function(event, context){ 
     console.log(JSON.stringify(event.username));
 
 
@@ -963,7 +963,7 @@ API Gateway
 테스트해 볼 차례입니다.
 
 1.  nw_app의 script폴더의 config.json파일에 scorehistory, scoreboard API의
-    Endpoint URL을 설정합니다. (API resource명까지 포함하여 설정하여야 합니다.)
+    Endpoint URL을 설정합니다.(API resource path까지 포함하여 설정하여야 합니다. 혹은 Lambda 함수의 Trigger 항목에서 method를 클릭하면 나오는 Invoke URL을 사용하셔도 됩니다.)
 
     ![](media/image73.png)
 ```json
@@ -976,7 +976,7 @@ API Gateway
     "cloudfrontDistributionId":"<cloudfrontDistributionId(not domain name, randomized string id)>",
     "cloudfrontURL":"http://<cloudfrontdomaindanme>",    
     "scorehistory_api_url":"<invoke_URL>/scorehisto",
-    "score_api_url":"<invoke_URL> /scoreboard"
+    "score_api_url":"<invoke_URL>/scoreboard"
 }
 ```
 
