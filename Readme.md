@@ -460,6 +460,8 @@ var CONFIG = {
 
     ![](media/image41.png)
 
+5.	만약 설정 등의 문제로 OAuth.js파일을 수정하여 다시 업로드 할 경우 Cloudfront에 이미 caching된 OAuth.js로 인해 수정사항이 바로 적용되지 않습니다. Cloudfront distribution detail에서 Invalidation 항목에서 Create invalidation 버튼을 클릭하고 /script/OAuth.js 를 입력하여 cache된 OAuth.js를 invalidate시키고 invalidation이 완료되면 다시 테스트를 진행합니다.
+
 ### NW.JS로 테스트
 
 1.  nw_app 폴더로 이동합니다.
