@@ -239,15 +239,13 @@ Cognito 생성하기
 
     ![](media/image17.png)
 
-4.  Pool을 생성하면 간단한 샘플 코드를 볼 수 있는 화면으로 이동합니다. 여기에서 화면 상단 우측의 Edit Identity Pool링크를 클릭합니다. Dashboard의 Edit identity Pool로도 이동할 수 있습니다. 또한, Identity Pool ID의 이름을 기록해 둡니다. 이후 설정에 필요합니다.
+4.  Pool을 생성하면 간단한 샘플 코드를 볼 수 있는 화면으로 이동합니다. 여기에서 화면 상단 우측의 Edit Identity Pool링크를 클릭합니다. Dashboard의 Edit identity Pool로도 이동할 수 있습니다. 
 
     ![](media/image18.png)
 
     ![](media/image19.png)
 
-5.  여기서 Identity Pool의 각종 설정사항을 편집할 수 있습니다. 우선
-    Unauthenticated role, Authenticated role의 이름을 확인합니다. 이 role에 이후
-    필요한 권한들을 추가할 것입니다.
+5.  여기서 Identity Pool의 각종 설정사항을 편집할 수 있습니다. 우선 Unauthenticated role, Authenticated role의 이름을 확인합니다. 이 role에 이후 필요한 권한들을 추가할 것입니다. 또한, Identity Pool ID의 이름을 기록해 둡니다. 이후 설정에 필요합니다.
 
     ![](media/image20.png)
 
