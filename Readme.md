@@ -431,22 +431,22 @@ exports.handler = (event, context) => {
     
     ![](media/image39.png)
 
-11.  Deploy가 완료되면 API Gateway의 Endpoint URL이 나옵니다.
+11.  Deploy가 완료되면 API Gateway의 Invoke URL이 나옵니다.
     ![](media/image40.png)
 
 12.  Endpoint URL을 기록해둡니다. (만약 API를 root가 아닌 별도의 이름으로
-    설정하였다면, /prod 뒤에 해당 API name까지 붙여서 기록해둡니다.)
+    설정하였다면, /prod 뒤에 해당 API의 resource path까지 붙여서 기록해둡니다.)
 
 카카오 인증 테스트하기
 ----------------------
 
 ### 웹에서 테스트
 
-1.  제공된 Source code의 root directory의 oauth.html과 script 폴더의 OAuth.js를 위에서 생성한 S3 Bucket에 업로드하여야 합니다. 업로드하기전에 OAuth.js를 먼저 편집합니다.
+1.  제공된 Source code의 root directory의 oauth.html과 script 폴더의 OAuth.js를 위에서 생성한 S3 Bucket에 업로드하여야 합니다. 업로드하기전에 OAuth.js를 먼저 편집합니다. API_URL은 API Gateway Invoke URL + resource path 형태로 설정하시거나 Lambda 함수의 trigger 항목에서 method항목을 펼치면 나오는 invoke URL을 사용하여 설정합니다.
 ``` javascript
 var CONFIG = { 
     "KakaoAppId":"<Kakao Javascript AppKey>", 
-    "API_URL":"<API Gateway prod enpoint URL(+methodname if not root)>" 
+    "API_URL":"<API Gateway prod enpoint URL(+resource path if not root)>" 
 } 
 ```
 
