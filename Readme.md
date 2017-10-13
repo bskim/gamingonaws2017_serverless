@@ -763,7 +763,7 @@ exports.handler = function(event, context)
         score: event.score
     };
     
-    dynamo.putItem({TableName:”DemoUserScore", Item:item}, cb);
+    dynamo.putItem({TableName:"DemoUserScore", Item:item}, cb);
     
 };
 ```
