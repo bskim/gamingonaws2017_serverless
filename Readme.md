@@ -472,7 +472,7 @@ var CONFIG = {
     "uploadprefix":"update", 
     "region":"ap-northeast-2", 
     "api_url":"<api_gateway prod endpoint url(+method name if specified>",
-    "IdentityPoolId":"<cognito Identity Pool ID (arn uuid format)>", 
+    "IdentityPoolId":"<cognito Identity Pool ID >", 
     "cloudfrontDistributionId":"<cloudfrontDistributionId(not domain name, randomized string id)>",
     "cloudfrontURL":"http://<cloudfrontdomaindanme>" 
 }
