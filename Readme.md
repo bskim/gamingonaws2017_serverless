@@ -221,7 +221,7 @@ Distribution을 생성합니다.
 
     ![](media/image77.png)
 
-6.  개인 정보보호항목에서 수집목적을 입력해야 합니다. (간편로그인 연동 등.) 입력하지 않으면 활성화가 되지 않습니다.(“사용자 관리 수정에 실패했습니다.”라는 에러가 발생합니다.) 사용자 프로필 정보만 수집하는 것으로 하고 수집목적을 입력합니다.
+6.  개인 정보보호항목에서 수집목적을 입력해야 합니다. (간편로그인 연동 등.) 입력하지 않으면 활성화가 되지 않습니다.( **"사용자 관리 수정에 실패했습니다."** 라는 에러가 발생합니다.) 사용자 프로필 정보만 수집하는 것으로 하고 수집목적을 입력합니다.
 
     ![](media/image78.png)
 
@@ -235,13 +235,11 @@ Cognito 생성하기
 
 2.  Kakaotalk 연계를 위하여 Federated Identity를 생성하여야 합니다. 오른쪽의 Manage Federated Identity를 선택합니다.
 
-3.  첫 페이지에서 Identity Pool name에 이름을 지정하고, Create Pool을 눌러    Identity Pool을 생성해줍니다.
+3.  첫 페이지에서 Identity Pool name을 gamingonaws로 지정하고, Create Pool을 눌러    Identity Pool을 생성해줍니다.
 
     ![](media/image17.png)
 
-4.  Pool을 생성하면 간단한 샘플 코드를 볼 수 있는 화면으로 이동합니다. 여기에서
-    화면 상단 우측의 Edit Identity Pool링크를 클릭합니다. Dashboard의 Edit
-    identity Pool로도 이동할 수 있습니다.
+4.  Pool을 생성하면 간단한 샘플 코드를 볼 수 있는 화면으로 이동합니다. 여기에서 화면 상단 우측의 Edit Identity Pool링크를 클릭합니다. Dashboard의 Edit identity Pool로도 이동할 수 있습니다. 또한, Identity Pool ID의 이름을 기록해 둡니다. 이후 설정에 필요합니다.
 
     ![](media/image18.png)
 
@@ -253,9 +251,7 @@ Cognito 생성하기
 
     ![](media/image20.png)
 
-6.  아래 Authentication Providers 항목을 설정합니다. Kakao Login은 Open ID를
-    지원하지 않기 때문에 Custom 항목으로 인증을 처리해야 합니다. Custom Tab을
-    열고 Developer Provide Name을 적절하게 지정한 후 저장합니다.
+6.  아래 Authentication Providers 항목을 설정합니다. Kakao Login은 Open ID를 지원하지 않기 때문에 Custom 항목으로 인증을 처리해야 합니다. Custom Tab을 열고 Developer Provide Name을 gamingonaws.auth로 지정한 후 저장합니다.
 
     ![](media/image21.png)
 
@@ -294,7 +290,7 @@ Cognito 및 Kakao 인증을 처리하기 위한 Lambda 함수와 API Gateway를 
 
     ![](media/image27.png)
 
-6.  다시 Configuration Tab으로 돌아와 아래 코드를 입력합니다.
+6.  다시 Configuration Tab으로 돌아와 아래 코드를 입력합니다. 아래 코드에서 <identity-pool-id>를 위 단계에서 기록해둔 ID로 대체합니다. 만일 developer provider name도 gamingonaws.auth가 아닌 다른 이름으로 지정하였다면 해당 이름으로 변경합니다.
 
 ```javascript
 var AWS = require('aws-sdk');
@@ -336,7 +332,7 @@ exports.handler = (event, context) => {
         var appId = obj.appId;
 
         var params = {
-          IdentityPoolId: 'ap-northeast-2:ec9c3b33-ee3e-45a0-a0c5-5abcd1e774fb', /* required */
+          IdentityPoolId: '<identity-pool-id>', /* required */
           Logins: { /* required */
             'gamingonaws.auth': useridfromkakao.toString()
           }, 
