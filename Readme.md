@@ -817,17 +817,21 @@ var DOC = require('dynamodb-doc');
 var dynamo = new DOC.DynamoDB();
 
 exports.handler = function(event, context) {
-var cb = function(err, data) {
-    if(err) {
-        console.log('error on DemoScoreHistory: ',err);
-        context.done('Unable to retrieve information', null);
-    } else {
-        if(data.Items) {
-            context.done(null, data.Items);
-        } else {
-            context.done(null, {});
-        }
-    }
+   var cb = function(err, data) {
+      if(err) {
+         console.log('error on DemoScoreHistory: ',err);
+         context.done('Unable to retrieve information', null);
+      } else {
+         if(data.Items) {
+             context.done(null, data.Items);
+         } else {
+             context.done(null, {});
+         }
+      }
+   };
+
+   dynamo.scan({TableName:"DemoScoreHistory"}, cb);
+
 };
 ```
 
@@ -964,7 +968,13 @@ API Gateway
     ![](media/image73.png)
 ```json
 {
-    //...
+    "bucketname":"<s3 bucket name>", 
+    "uploadprefix":"update", 
+    "region":"ap-northeast-2", 
+    "api_url":"<api_gateway prod endpoint url(+method name if specified>",
+    "IdentityPoolId":"<cognito Identity Pool ID >", 
+    "cloudfrontDistributionId":"<cloudfrontDistributionId(not domain name, randomized string id)>",
+    "cloudfrontURL":"http://<cloudfrontdomaindanme>",    
     "scorehistory_api_url":"<invoke_URL>/scorehisto",
     "score_api_url":"<invoke_URL> /scoreboard"
 }
