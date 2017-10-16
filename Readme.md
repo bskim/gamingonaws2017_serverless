@@ -535,8 +535,10 @@ var CONFIG = {
     (여기서는 nw_app과 같은 depth의 nwjs-sdk 폴더에 nwjs파일을 압축해제하였다고
     가정합니다. Mac의 경우, nwjs를 nwjs.app/Contents/MacOS/nwjs . 와 같이
     실행합니다.
-
-    ![](media/image42.png)
+    - windows 
+     ![](media/image42.png)
+    - MacOS
+     ![](media/image81.png)
 
 4.  Desktop Application에서 카카오 인증을 진행하고 결과를 확인합니다.
 
