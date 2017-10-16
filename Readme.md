@@ -160,9 +160,30 @@ Distribution을 생성합니다.
 
     ![](media/image6.png)
 
-7.  생성된 버킷의 Properties Tab에서 Static website hosting을 활성화합니다.
+7.  생성된 버킷의 Properties Tab에서 Static website hosting을 활성화합니다. (이 때 index Document에는 index.html을 기입해둡니다.)
 
     ![](media/image7.png)
+
+8.	Permissions Tab에서 Bucket 정책을 다음과 같이 추가합니다. <bucket_name>을 생성한 bucket 이름으로 대체합니다.
+
+    ![](media/image79.png)
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadForGetBucketObjects",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion"
+            ],
+            "Resource": "arn:aws:s3:::<bucket_name>/*"
+        }
+    ]
+}
+```
 
 ### Cloudfront Distribution 생성하기
 
@@ -215,6 +236,7 @@ Distribution을 생성합니다.
     입력합니다. 이때, http와 https 두가지 모두 입력해 둡니다.
 
     ![](media/image14.png)
+    
     ![](media/image15.png)
 
 5.  카카오 로그인을 활성화합니다. 좌측 설정 메뉴에서 사용자 관리 메뉴를 클릭하여 사용자 관리를 활성화합니다.
@@ -235,9 +257,11 @@ Cognito 생성하기
 
 2.  Kakaotalk 연계를 위하여 Federated Identity를 생성하여야 합니다. 오른쪽의 Manage Federated Identity를 선택합니다.
 
-3.  첫 페이지에서 Identity Pool name을 gamingonaws로 지정하고, Create Pool을 눌러    Identity Pool을 생성해줍니다.
+3.  첫 페이지에서 Identity Pool name을 gamingonaws로 지정하고 Enable Access to Unauthenticated Identities 항목을 체크한 뒤, Create Pool을 눌러 Identity Pool을 생성해줍니다. Unauthenticated role, Authenticated role 권한에 맞는 IAM role 생성 화면이 나타나지만 여기서는 우선 Allow button을 눌러 진행합니다. 이후 IAM Role에서 필요한 권한을 추가할 것입니다.
 
     ![](media/image17.png)
+
+    ![](media/image80.png)
 
 4.  Pool을 생성하면 간단한 샘플 코드를 볼 수 있는 화면으로 이동합니다. 여기에서 화면 상단 우측의 Edit Identity Pool링크를 클릭합니다. Dashboard의 Edit identity Pool로도 이동할 수 있습니다. 
 
@@ -276,6 +300,35 @@ Cognito 및 Kakao 인증을 처리하기 위한 Lambda 함수와 API Gateway를 
 
 3.  View Policy Document를 클릭하고 Edit를 선택하여 다음과 같이 Cognito 인증을
     위한 권한을 추가합니다.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "cognito-identity:*",
+                "cognito-idp:*",
+                "cognito-sync:*",
+                "iam:ListRoles",
+                "iam:ListOpenIdConnectProviders",
+                "sns:ListPlatformApplications"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
 
 4.  생성된 Lambda 함수에서 Triggers Tab에서 Add trigger로 API Gateway를
     지정합니다.
@@ -371,9 +424,7 @@ exports.handler = (event, context) => {
 
     ![](media/image29.png)
 
-3.  Dropdown 메뉴에서 먼저 OPTIONS 메소드를 추가합니다. OPTIONS에서는
-    Integration Type을 Mock으로 선택합니다. Mock 형태이므로 이대로 저장하면
-    됩니다.
+3.  Dropdown 메뉴에서 먼저 OPTIONS  메소드를 선택한 후 옆의 체크버튼을 클릭하여 OPTIONS 메소드를 추가합니다. OPTIONS에서는 Integration Type을 Mock으로 선택합니다. Mock 형태이므로 이대로 저장하면 됩니다.
 
     ![](media/image30.png)
 
@@ -391,7 +442,7 @@ exports.handler = (event, context) => {
 
 6.  하단의 Body Mapping Template 항목을 열고 Add mapping template을 눌러 새로운
     Mapping을 추가합니다. Content-Type은 application/json을 입력합니다. 추가할때
-    아래와 같은 경고창이 나오면 No, use current settings를 선택해줍니다. 그러면
+    아래와 같은 경고창이 나오면 **<font color="red">No, use current settings</font>** 를 선택해줍니다. 그러면
     아래와 같이 Template를 입력하는 창이 나옵니다.
 
     ![](media/image33.png)
