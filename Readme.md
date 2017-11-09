@@ -515,7 +515,7 @@ var CONFIG = {
 
 ### NW.JS로 테스트
 
-1.  nw_app 폴더로 이동합니다.
+1.  nw_app 폴더(package.json이 위치한 폴더)로 이동합니다. nw_app은 https://github.com/bskim/gamingonaws2017_serverless 에서 다운로드 받을 수 있습니다.
 
 2.  Script 폴더의 config.json을 열어 필요항목을 편집합니다.
 
