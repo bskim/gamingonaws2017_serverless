@@ -5,6 +5,8 @@
 **Gaming on AWS**
 ===
 
+[Go to english page](./Readme.en.md)
+
 Serverless로 게임 서비스 구현하기
 =================================
 
