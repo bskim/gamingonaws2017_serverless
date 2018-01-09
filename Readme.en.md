@@ -5,6 +5,7 @@
 **Gaming on AWS**
 ===
 [Go to Korean page](./Readme.md)
+
 Implementing game services using Serverless
 =================================
 
