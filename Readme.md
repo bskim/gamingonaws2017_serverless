@@ -535,7 +535,7 @@ var CONFIG = {
     "api_url":"<api_gateway prod endpoint url(+method name if specified>",
     "IdentityPoolId":"<cognito Identity Pool ID >", 
     "cloudfrontDistributionId":"<cloudfrontDistributionId(not domain name, randomized string id)>",
-    "cloudfrontURL":"http://<cloudfrontdomaindanme>" 
+    "cloudfrontURL":"https://<cloudfrontdomaindanme>" 
 }
 ```
 
@@ -665,6 +665,7 @@ var CONFIG = {
     ![](media/image59.png)
 
 2. Continue With Facebook 버튼을 클릭하여 Login이 제대로 진행되고 Cognito Identity ID로 매핑된 결과가 출력되는지 확인합니다. 이 때 반드시 APP을 생성한 Facebook ID를 사용하여 로그인합니다.  다른 계정을 사용할 경우 권한 없음 에러가 나오고 더 이상 진행되지 않습니다. 다른 계정으로 로그인하여 더 이상 진행되지 않을 경우 Browser cache를 모두 삭제하고 로그인을 다시 진행하실 수 있습니다. (개발자도구 > Application > Clear Storage를 통해 browser cache 및 데이터를 삭제할 수 있습니다. )
+
 Lab2. S3와 Cloudfront로 클라이언트 배포 서비스 제작하기
 =======================================================
 
@@ -1150,7 +1151,7 @@ API Gateway
     "api_url":"<api_gateway prod endpoint url(+method name if specified>",
     "IdentityPoolId":"<cognito Identity Pool ID >", 
     "cloudfrontDistributionId":"<cloudfrontDistributionId(not domain name, randomized string id)>",
-    "cloudfrontURL":"http://<cloudfrontdomaindanme>",    
+    "cloudfrontURL":"https://<cloudfrontdomaindanme>",    
     "scorehistory_api_url":"<invoke_URL>/scorehisto",
     "score_api_url":"<invoke_URL>/scoreboard"
 }

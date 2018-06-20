@@ -381,7 +381,7 @@ var CONFIG = {
     "api_url":"<api_gateway prod endpoint url(+method name if specified>",
     "IdentityPoolId":"<cognito Identity Pool ID >", 
     "cloudfrontDistributionId":"<cloudfrontDistributionId(not domain name, randomized string id)>",
-    "cloudfrontURL":"http://<cloudfrontdomaindanme>" 
+    "cloudfrontURL":"https://<cloudfrontdomaindanme>" 
 }
 ```
 3.	Move to the nw_app folder on the Cmd / terminal window and input the following commands. (Here, it is assumed that the nwjs has been decompressed in the newjs-sdk folder with the same depth with nw_app. For Mac, run nwjs like nwjs.app/Contents/MacOS/nwjs.)  
@@ -832,7 +832,7 @@ Now, it is time to set the game to use API Gateway APIs configured in the previo
     "api_url":"<api_gateway prod endpoint url(+method name if specified>",
     "IdentityPoolId":"<cognito Identity Pool ID >", 
     "cloudfrontDistributionId":"<cloudfrontDistributionId(not domain name, randomized string id)>",
-    "cloudfrontURL":"http://<cloudfrontdomaindanme>",    
+    "cloudfrontURL":"https://<cloudfrontdomaindanme>",    
     "scorehistory_api_url":"<invoke_URL>/scorehisto",
     "score_api_url":"<invoke_URL>/scoreboard"
 }
