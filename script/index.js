@@ -48,7 +48,7 @@ db.localfiledb_tmp = undefined;
 
 
 var asyncLoop = require('node-async-loop')
-
+$('#oauthlogin').attr('src',cf_url+"oauth.html")
 $('#output').append(`You are running on ${os.platform()}<br/>`)
 
 function cognitoSyncUpdate(dataset_base,key,value_to_update)
