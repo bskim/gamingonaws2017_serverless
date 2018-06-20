@@ -20,11 +20,11 @@ S3](https://aws.amazon.com/ko/s3/), [Amazon
 DynamoDB](https://aws.amazon.com/ko/s3/), [Amazon
 Cognito](https://aws.amazon.com/ko/cognito/), [Amazon
 Cloudfront](https://aws.amazon.com/ko/cloudfront/)를 활용합니다. Amazon S3는
-정적 웹호스팅을 통해 KakaoTalk과 Cognito 를 연계하는 proxy 역할 및 클라이언트
+정적 웹호스팅을 통해 KakaoTalk, Google, Facebook과 인증을 처리하고  Cognito와 연계하는 proxy 역할 및 클라이언트
 업데이트를 위한 origin 서버 기능을 제공합니다. NW.js에서 실행되는 node.js
 javascript는 AWS SDK를 사용하여 AWS 서버리스 서비스들과 데이터를 주고 받으며
 Lambda 및 API Gateway와 연계하여 Application logic을 구현합니다. Amazon
-Cognito는 KakaoTalk이 지원하는 [OAuth
+Cognito는 KakaoTalk, Google, Facebook이 지원하는 [OAuth
 표준](https://ko.wikipedia.org/wiki/OAuth)을 사용하여 사용자의 인증과 관리 기능,
 CognitoSync를 통한 사용자 데이터 저장 기능을 제공합니다. Cloudfront는 비용 절감
 및 클라이언트 다운로드 성능 최적화를 위한 [CDN
@@ -59,6 +59,17 @@ Lambda, API Gateway, Cloudfront 및 Cognito에 접근할 수 있어야 하며, �
 카카오톡 인증 연동을 위하여 KakaoTalk Developer 계정이 필요합니다. 상세한 내용은
 [Kakao Developers 페이지](https://dev.kakao.com/)를 참조하십시오.
 
+Google 디벨로퍼 계정
+--------------------
+
+구글 인증 연동을 위하여 Google Developer 계정이 필요합니다. 상세한 내용은 [Google Developers 페이지](https://console.developers.google.com/)를 참조하십시오
+
+Facebook 디벨로퍼 계정
+--------------------
+
+Facebook 인증 연동을 위하여 Facebook Developer 계정이 필요합니다. 상세한 내용은 [Facebook Developers 페이지](https://developers.facebook.com/)를 참조하십시오.
+
+
 텍스트 에디터
 -------------
 
@@ -76,8 +87,8 @@ NW.JS
 완료하여야 합니다. 워크샵을 마친 후에는 자원 삭제 가이드에 따라 생성된 모든
 리소스를 삭제할 수 있습니다.
 
--   [Lab1. Cognito를 이용하여 카카오톡
-    연동하기](#lab1.-cognito를-이용하여-카카오톡-연동하기)
+-   [Lab1. Cognito를 이용하여 인증
+    연동하기](#lab1.-cognito를-이용하여-인증-연동하기)
 
 -   [Lab2. S3와 Cloudfront로 클라이언트 배포 서비스
     제작하기](#lab2.-S3와-Cloudfront로-클라이언트-배포-서비스-제작하기)
@@ -106,32 +117,27 @@ AWS 설명서에서 리전 표 를 참고하여 지원되는 서비스가 있는
 있습니다. 지원되는 지역중에서는 N. Virginia, Ohio, Oregon, Ireland, Frankfurt,
 Tokyo, Sydney, Seoul 이 있습니다.
 
-Lab1. Cognito를 이용하여 카카오톡 연동하기
+Lab1. Cognito를 이용하여 인증 연동하기
 ===========================================
 
-이 모듈에서는 KakaoTalk과 Cognito를 이용하여 인증 서비스를 구성합니다.
-KakaoTalk에서 OpenID를 지원하지 않기 때문에, OAuth 2.0표준을 통하여 Custom
-Source로 Cognito와 연동할 수 있습니다. OpenID나
-Google,Twitter,Facebook,Amazon,Digits의 경우에는 Cognito Console에서 더욱
-간단하게 인증 연계가 가능합니다. KakaoTalk javascript API는 webserver를 통한
-loading만을 허용하기 때문에 Desktop application에서 웹서버 없이 사용할 수 없고,
-RESTful API 역시 KakaoTalk API의 CORS설정으로 인해 Desktop application에서
-구현할 수는 없습니다. 따라서, 이 실습에서는 Amazon Simple Storage Service(S3)의
-정적 웹페이지 호스팅 기능을 이용하여 Kakaotalk 인증을 중개하도록 구성합니다.
-만일 Mobile Application이나 웹앱이라면 S3 정적 웹페이지 호스팅 과정 없이 Kakao
-API와 AWS SDK를 사용하여 연계가 가능합니다.
+이 모듈에서는 Google+, Facebook, 카카오톡과 Cognito를 이용하여 인증 서비스를 구성합니다. Google+ 및 Facebook은 Cognito에서 built-in으로 지원하고, KakaoTalk의 경우 builtin으로 지원하지 않고 OpenID를 지원하고 있지 않기 때문에, OAuth 2.0표준을 통하여 Custom Source로 Cognito와 연동할 수 있습니다. Google,Twitter,Facebook,Amazon,Digits과 같은 built-in 지원 서비스나 OpenID를 지원하는 서비스의 경우에는 Cognito Console에서 간단하게 인증 연계가 가능합니다. KakaoTalk javascript API는 webserver를 통한 loading만을 허용하기 때문에 Desktop application에서 웹서버 없이 사용할 수 없고, RESTful API 역시 KakaoTalk API의 CORS설정으로 인해 Desktop application에서 구현할 수는 없습니다. 따라서, 이 실습에서는 Amazon Simple Storage Service(S3)의 정적 웹페이지 호스팅 기능을 이용하여 Kakaotalk 인증을 중개하도록 구성합니다. 만일 Mobile Application이나 웹앱이라면 S3 정적 웹페이지 호스팅 과정 없이 Kakao API와 AWS SDK를 사용하여 연계가 가능합니다. 
 
-Kakao Login을 사용하는 로그인 과정은 다음과 같은 흐름을 가지게 됩니다.
+로그인 과정은 다음과 같은 흐름을 가지게 됩니다.
+
 
 ![](media/image3.png)
 
-사용자는 oauth.html의 javascript를 통하여 Kakao Login을 요청하여 Key를 발급받고,
-필요정보를 AWS API Gateway로 전달합니다. API Gateway는 들어온 정보를 가지고
-Lambda를 호출합니다. Lambda함수는 Kakao Login에서 전달받은 Key 정보의 정합성을
-확인하고 올바른 키의 경우 Cognito에 Cognito Token 을 요청합니다. Token이
-발급되면 API Gateway를 통해 response를 반환하게 됩니다. 이제 사용자는 Cognito
-ID와 Token을 가지고 해당 세션에 Cognito를 통한 Credential을 할당 받고 정의된
-Role의 권한이 허용하는 AWS 서비스를 활용할 수 있게 됩니다.
+- 카카오톡의 경우
+1. 사용자는 oauth.html의 javascript를 통하여 Kakao Login을 요청하여 Key를 발급받고,
+필요정보를 AWS API Gateway로 전달합니다.
+2.  API Gateway는 들어온 정보를 가지고 Lambda를 호출합니다. 
+3.  Lambda함수는 Kakao Login에서 전달받은 Key 정보의 정합성을 확인하고 올바른 키의 경우 Cognito에 Cognito Token 을 요청합니다. Token이 발급되면 API Gateway를 통해 response를 반환하게 됩니다. 
+4.  이제 사용자는 Cognito ID와 Token을 가지고 해당 세션에 Cognito를 통한 Credential을 할당 받고 정의된 Role의 권한이 허용하는 AWS 서비스를 활용할 수 있게 됩니다.
+
+- Google+, Facebook의 경우
+1. 사용자는 oauth.html의 javascript를 통하여 Google+, Facebook에 Login을 요청하여 Key를 발급받습니다.
+2. AWS JS SDK를 통해 Credential을 요청합니다. Cognito는 설정한 Provider에 Token의 정합성을 확인하고 Credential을 할당받고, 정의된 Role의 권한이 허용하는 AWS 서비스를 활용할 수 있게 됩니다. ( 카카오톡에서 Lambda와 API-GW로 처리했던 2),3) 과정이 Cognito가 built-in으로 지원하는 authentication provider의 경우에는 Cognito 내부에서 발생하게 됩니다. )
+
 
 S3 및 Cloudfront 생성하기
 -------------------------
@@ -168,7 +174,7 @@ Distribution을 생성합니다.
 
 8.	Permissions Tab에서 Bucket 정책을 다음과 같이 추가합니다. <bucket_name>을 생성한 bucket 이름으로 대체합니다.
 
-    ![](media/image79.png)
+    ![](media/image8.png)
 ```json
 {
     "Version": "2012-10-17",
@@ -196,15 +202,15 @@ Distribution을 생성합니다.
 
 3.  Delivery method로 Web을 선택하십시오
 
-    ![](media/image8.png)
+    ![](media/image9.png)
 
 4.  Origin Domain Name으로 위에서 생성한 Bucket을 설정합니다.
 
-    ![](media/image9.png)
+    ![](media/image10.png)
 
 5.  Query String Fowarding and Caching을 Forward all, cache based on whitelist로 선택하고, Query String Whitelist에 **versionId**라고 입력합니다. (이후 Client resource update/patch에서 해당 기능을 사용합니다.)
 
-    ![](media/image10.png)
+    ![](media/image11.png)
 
 6.  Create Distribution 버튼을 클릭하여 Cloudfront distribution을 생성합니다.
     Distribution 생성에는 시간이 걸리므로 바로 다음 단계로 진행합니다.
@@ -218,8 +224,8 @@ Distribution을 생성합니다.
     있습니다. 개발자 등록을 마치고 개발자 포털에서 앱 개발 시작하기 버튼을
     클릭하면 앱개발을 위한 페이지로 이동합니다.
 
-    ![](media/image11.png)
     ![](media/image12.png)
+    ![](media/image13.png)
 
 2.  앱 만들기 버튼을 클릭하고 적정한 이름을 지정하면 Kakao용 앱을 만들 준비가
     완료됩니다.
@@ -229,7 +235,7 @@ Distribution을 생성합니다.
     Key를 기록해둡니다. 이 키는 여러분의 애플리케이션 및 Lambda함수에서 사용될
     예정입니다.
 
-    ![](media/image13.png)
+    ![](media/image14.png)
 
 4.  카카오쪽에서는 애플리케이션의 인증 도메인을 확인합니다. 이를 위하여
     애플리케이션의 설정/개요 항목에서 앰정보 항목의 “설정된 플랫폼”을 통해 어떤
@@ -237,17 +243,17 @@ Distribution을 생성합니다.
     도메인으로 위에서 생성한 Cloudfront distribution 의 domain name을
     입력합니다. 이때, http와 https 두가지 모두 입력해 둡니다.
 
-    ![](media/image14.png)
-    
     ![](media/image15.png)
+    
+    ![](media/image16.png)
 
 5.  카카오 로그인을 활성화합니다. 좌측 설정 메뉴에서 사용자 관리 메뉴를 클릭하여 사용자 관리를 활성화합니다.
 
-    ![](media/image77.png)
+    ![](media/image17.png)
 
 6.  개인 정보보호항목에서 수집목적을 입력해야 합니다. (간편로그인 연동 등.) 입력하지 않으면 활성화가 되지 않습니다.( **"사용자 관리 수정에 실패했습니다."** 라는 에러가 발생합니다.) 사용자 프로필 정보만 수집하는 것으로 하고 수집목적을 입력합니다.
 
-    ![](media/image78.png)
+    ![](media/image18.png)
 
 
 Cognito 생성하기
@@ -255,29 +261,29 @@ Cognito 생성하기
 
 1.  AWS Console에서 Cognito를 선택합니다.
 
-    ![](media/image16.png)
+    ![](media/image19.png)
 
 2.  Kakaotalk 연계를 위하여 Federated Identity를 생성하여야 합니다. 오른쪽의 Manage Federated Identity를 선택합니다.
 
 3.  첫 페이지에서 Identity Pool name을 gamingonaws로 지정하고 Enable Access to Unauthenticated Identities 항목을 체크한 뒤, Create Pool을 눌러 Identity Pool을 생성해줍니다. Unauthenticated role, Authenticated role 권한에 맞는 IAM role 생성 화면이 나타나지만 여기서는 우선 Allow button을 눌러 진행합니다. 이후 IAM Role에서 필요한 권한을 추가할 것입니다.
 
-    ![](media/image17.png)
+    ![](media/image20.png)
 
-    ![](media/image80.png)
+    ![](media/image21.png)
 
 4.  Pool을 생성하면 간단한 샘플 코드를 볼 수 있는 화면으로 이동합니다. 여기에서 화면 상단 우측의 Edit Identity Pool링크를 클릭합니다. Dashboard의 Edit identity Pool로도 이동할 수 있습니다. 
 
-    ![](media/image18.png)
+    ![](media/image22.png)
 
-    ![](media/image19.png)
+    ![](media/image23.png)
 
 5.  여기서 Identity Pool의 각종 설정사항을 편집할 수 있습니다. 우선 Unauthenticated role, Authenticated role의 이름을 확인합니다. 이 role에 이후 필요한 권한들을 추가할 것입니다. 또한, Identity Pool ID의 이름을 기록해 둡니다. 이후 설정에 필요합니다.
 
-    ![](media/image20.png)
+    ![](media/image24.png)
 
 6.  아래 Authentication Providers 항목을 설정합니다. Kakao Login은 Open ID를 지원하지 않기 때문에 Custom 항목으로 인증을 처리해야 합니다. Custom Tab을 열고 Developer Provide Name을 gamingonaws.auth로 지정한 후 저장합니다.
 
-    ![](media/image21.png)
+    ![](media/image25.png)
 
 Lambda 및 API Gateway 생성하기
 ------------------------------
@@ -289,16 +295,16 @@ Cognito 및 Kakao 인증을 처리하기 위한 Lambda 함수와 API Gateway를 
 1.  AWS Management Console에서 Lambda를 선택합니다. Author from scratch로
     빈함수를 생성합니다.
 
-    ![](media/image22.png)
+    ![](media/image26.png)
 
-    ![](media/image23.png)
+    ![](media/image27.png)
 
 2.  Role은 Create a custom role을 선택하여 Lambda에 부여할 IAM role을
     설정합니다.
 
-    ![](media/image24.png)
+    ![](media/image28.png)
 
-    ![](media/image25.png)
+    ![](media/image29.png)
 
 3.  View Policy Document를 클릭하고 Edit를 선택하여 다음과 같이 Cognito 인증을
     위한 권한을 추가합니다.
@@ -335,13 +341,13 @@ Cognito 및 Kakao 인증을 처리하기 위한 Lambda 함수와 API Gateway를 
 4.  생성된 Lambda 함수에서 Triggers Tab에서 Add trigger로 API Gateway를
     지정합니다.
 
-    ![](media/image26.png)
+    ![](media/image30.png)
 
 5.  API name을 Enter value 버튼을 클릭하여 지정하고, Security는 Open으로
     지정합니다. (실제 서비스에서는 보안 강화를 위하여 Secret Key나 IAM을
     사용하도록 설정할 수 있습니다.)
 
-    ![](media/image27.png)
+    ![](media/image31.png)
 
 6.  다시 Configuration Tab으로 돌아와 아래 코드를 입력합니다. 아래 코드에서 <identity-pool-id>를 위 단계에서 기록해둔 ID로 대체합니다. 만일 developer provider name도 gamingonaws.auth가 아닌 다른 이름으로 지정하였다면 해당 이름으로 변경합니다.
 
@@ -419,39 +425,39 @@ exports.handler = (event, context) => {
     Management Console에서 API Gateway항목으로 이동하거나 Lambda의 Triggers
     Tab에서 링크를 클릭하여 이동합니다.
 
-    ![](media/image28.png)
+    ![](media/image32.png)
 
 2.  API Gateway항목의 Resource의 Dropdown메뉴에서 Create method 항목을
     선택합니다.
 
-    ![](media/image29.png)
+    ![](media/image33.png)
 
 3.  Dropdown 메뉴에서 먼저 OPTIONS  메소드를 선택한 후 옆의 체크버튼을 클릭하여 OPTIONS 메소드를 추가합니다. OPTIONS에서는 Integration Type을 Mock으로 선택합니다. Mock 형태이므로 이대로 저장하면 됩니다.
 
-    ![](media/image30.png)
+    ![](media/image34.png)
 
 4.  마찬가지로 GET method를 추가합니다. Integration Type을 Lambda로 선택하고,
     Region은 Lambda함수를 생성한 Region을 선택합니다. Seoul을 선택하였다면
     ap-northeast-2가 됩니다. Lambda Function은 위에서 생성한 함수 이름을
     입력하고 저장합니다. (자동완성을 지원합니다.)
 
-    ![](media/image31.png)
+    ![](media/image35.png)
 
 5.  이제 GET method의 상세 사항을 설정하겠습니다. GET method를 선택하여
     Integration Request 항목을 클릭합니다.
     
-    ![](media/image32.png)
+    ![](media/image36.png)
 
 6.  하단의 Body Mapping Template 항목을 열고 Add mapping template을 눌러 새로운
     Mapping을 추가합니다. Content-Type은 application/json을 입력합니다. 추가할때
     아래와 같은 경고창이 나오면 **<font color="red">No, use current settings</font>** 를 선택해줍니다. 그러면
     아래와 같이 Template를 입력하는 창이 나옵니다.
 
-    ![](media/image33.png)
+    ![](media/image37.png)
 
-    ![](media/image34.png)
+    ![](media/image38.png)
 
-    ![](media/image35.png)
+    ![](media/image39.png)
 
 7.  여기에 아래 코드를 입력하고 Save를 누릅니다.
 ```javascript
@@ -471,21 +477,21 @@ exports.handler = (event, context) => {
     Origin Resource Sharing)설정을 하도록하겠습니다. Actions 메뉴에서 Enable
     CORS를 선택합니다.
 
-    ![](media/image36.png)
+    ![](media/image40.png)
 
 9.  기본값으로 Enable CORS and replace existing CORS headers 버튼을 눌러
     설정합니다.
 
-    ![](media/image37.png)
-    ![](media/image38.png)
+    ![](media/image41.png)
+    ![](media/image42.png)
 
 10.  이제 API를 Deploy합니다. Action menu에서 Deploy API항목을 선택하고
     Deployment stage는 prod를 선택하여 Deploy합니다.
     
-    ![](media/image39.png)
+    ![](media/image43.png)
 
 11.  Deploy가 완료되면 API Gateway의 Invoke URL이 나옵니다.
-    ![](media/image40.png)
+    ![](media/image44.png)
 
 12.  Invoke URL을 기록해둡니다. (만약 API를 root가 아닌 별도의 resource path로
     설정하였다면, /prod 뒤에 해당 API의 resource path까지 붙여서 기록해둡니다.)
@@ -511,7 +517,7 @@ var CONFIG = {
 4.  카카오계정으로 로그인 버튼을 눌러 Token 발급 및 필요정보들이 출력되는지
     확인합니다.
 
-    ![](media/image41.png)
+    ![](media/image45.png)
 
 5.	만약 설정 등의 문제로 OAuth.js파일을 수정하여 다시 업로드 할 경우 Cloudfront에 이미 caching된 OAuth.js로 인해 수정사항이 바로 적용되지 않습니다. Cloudfront distribution detail에서 Invalidation 항목에서 Create invalidation 버튼을 클릭하고 /script/OAuth.js 를 입력하여 cache된 OAuth.js를 invalidate시키고 invalidation이 완료되면 다시 테스트를 진행합니다.
 
@@ -538,14 +544,127 @@ var CONFIG = {
     가정합니다. Mac의 경우, nwjs를 nwjs.app/Contents/MacOS/nwjs . 와 같이
     실행합니다.
     - windows 
-     ![](media/image42.png)
+     ![](media/image46.png)
     - MacOS
-     ![](media/image81.png)
+     ![](media/image47.png)
 
 4.  Desktop Application에서 카카오 인증을 진행하고 결과를 확인합니다.
 
-    ![](media/image43.png)
+    ![](media/image48.png)
 
+구글 연동 추가하기
+----------------
+이제 Google+ 인증 연동을 추가합니다. Google+ 연동의 경우 Cognito에서 built-in으로 지원되기 때문에 API-GW, Lambda function을 통한 validation check가 필요하지 않아 훨씬 손쉽게 연동이 가능합니다.
+
+### 구글 인증 API 등록 및 설정하기
+
+1.	Google 인증 연동을 위해서는 Google OAuth Client 설정을 진행해야 합니다. https://developers.google.com/identity/sign-in/web/sign-in 로 접속하여 CONFIGURE PROJECT버튼을 클릭하고 프로젝트를 생성합니다. 
+    
+    ![](media/image49.png)
+    ![](media/image50.png)
+    ![](media/image51.png)
+
+2. OAuth Client로 Web Browser를 선택하고 Authorized Javascript Origin에 앞서 설정한 cloudfront url을 기입하여 프로젝트를 생성합니다. 
+    ![](media/image52.png)
+
+3. 마지막 화면에서 API Console link를 click하여 Google Console에 접속합니다.
+    ![](media/image53.png)
+
+4. Google Console화면에서 사용자 인증정보 메뉴를 확인하면 OAuth Client 및 Web Client가 생성된 것을 확인할 수 있습니다. OAuth Client의 편집 버튼을 눌러 내용을 확인합니다. 
+    ![](media/image54.png)
+
+5. Cloudfront의 URL을 제대로 입력된 것을 확인하고 https:// URL을 추가하고 클라이언트 ID를 복사하여 저장해둡니다.
+    ![](media/image55.png)
+
+### Cognito에 Google+ 연동 추가하기
+1. Cognito 화면으로 돌아가 Edit Identity Pool 메뉴로 이동합니다.
+    ![](media/image22.png)
+
+2. Identity Pool화면의 Authentication Providers 항목을 펼치고 Google+ Tab을 클릭한후, Unlock button을 누릅니다.
+    ![](media/image56.png)
+
+3. Google Console 에서 복사한 Client ID를 이곳에 기입합니다.
+    ![](media/image57.png)
+
+4. 변경사항을 저장합니다.
+
+### OAuth.js 설정사항 추가하기
+1. OAuth.js에 다음항목을 추가합니다.
+```javascript
+var CONFIG = {
+    "KakaoAppId":"<Kakao Javascript AppKey>",
+    "API_URL":"API Gateway prod enpoint URL(+resource path if not root) ",
+    "googleAPIclientID":"<Google Client id (including apps.googleusercontent.com)>"
+}
+```
+
+2. S3 bucket의 script 경로에 OAuth.js를 업로드하고, Cloudfront에서 /script/OAuth.js를 Invalidate합니다.
+
+### 구글 인증 테스트하기
+#### Web으로 테스트하기
+1. 브라우저에서 Cloudfront url/oauth.html을 열고 browser cache를 refresh합니다. ( (Chrome의 경우 CTRL+F5(Windows), CTRL-SHIFT-R(Mac))
+    ![](media/image58.png)
+2. Sign In with Google 버튼을 클릭하여 Google Account 로그인 및 Token이 제대로 출력되는지 확인 합니다.
+#### NWJS로 테스트하기
+1. 위에서와 같이 NWJS를 통해 nw_app을 실행합니다. 이미 실행된 nw_app에서 테스트한다면 Mouse 우클릭으로 앱 다시로드를 진행하여 업데이트된 oauth.html, OAuth,js를 로딩하도록 합니다.
+    ![](media/image59.png)
+2. Sigin in with Google 버튼을 클릭하여 Login이 제대로 진행되고 Cognito Identity ID로 매핑된 결과가 출력되는지 확인합니다.
+
+Facebook 연동 추가하기
+---------------------
+마지막으로 Facebook 인증 연동을 추가합니다. Facebook의 경우에도 Cognito에서 built-in으로 지원되기 때문에 API-GW, Lambda function을 통한 validation check가 필요하지 않아 훨씬 손쉽게 연동이 가능합니다.
+
+#### Facebook SDK 등록 및 설정하기
+1. Facebook 인증을 연동하기 위하여 먼저 API 및 SDK 설정을 진행해야 합니다. https://developers.facebook.com에 접속하여 My Apps>Add new App을 선택하여 App을 생성합니다.
+    ![](media/image60.png)
+
+2. Facebook Login의 Setup 버튼을 클릭하여 Login을 추가합니다.
+    ![](media/image61.png)
+
+3. www을 선택합니다.
+    ![](media/image62.png)
+
+4. Site URL에 Cloudfront domain name을 입력하고 Continue를 눌러 다음단계로 계속 진행하여 마지막까지 진행합니다.
+    ![](media/image63.png)
+
+5. 모두 진행한 뒤 좌측 메뉴의 Facebook Login 항목의 Settings를 클릭하고 Embedded Browser OAuth Login을 활성화합니다.
+    ![](media/image64.png)
+
+6. 이렇게 생성한 Facebook Login은 In Development 상태로 기본적으로, 이 Facebook App을 설정한 Facebook 사용자만 접근할 수 있습니다. 테스트 가능한 사용자를 추가하거나 Production 상태로 전환하기 위하여 몇가지 설정이 더 필요하지만, 이 랩에서는 다루지 않습니다. 화면 상단에서 생성한 APP ID를 확인하고 기록합니다. 이후 설정에 필요합니다.
+    ![](media/image65.png)
+
+### Cognito에 Facebook Provider 추가하기
+
+1. AWS Cognito Console에 Authentication Provider로 Facebook을 추가할 차례입니다. Edit Identity Pool 을 클릭하여 Identity Pool 설정화면으로 이동합니다.
+    ![](media/image22.png)
+
+2. Authentication providers 항목의 Facebook Tab에서 Facebook App ID 항목을 Unlock하고 위에서 기록한 Facebook login의 APP ID를 기입하고 저장합니다.
+    ![](media/image66.png)
+
+### OAuth.js에 Facebook 설정 추가하기
+1. OAuth.js에 Facebook APP ID를 추가합니다.
+```javascript
+var CONFIG = {
+    "KakaoAppId":"<Kakao Javascript AppKey>",
+    "API_URL":" API Gateway prod enpoint URL(+resource path if not root) ",
+    "fbAppId":"<Facebook App ID>",
+    "googleAPIclientID":"<Google Client id (including apps.googleusercontent.com)>"
+}
+```
+2. S3 Bucket의 script 폴더에 업데이트한 OAuth.js를 업로드하고, Cloudfront distribution에서 /script/OAuth.js를 Invalidation합니다.
+
+### Facebook 연동 테스트하기
+#### Web으로 테스트하기
+1. 브라우저에서 Cloudfront url/oauth.html을 열고 browser cache를 refresh합니다. ( (Chrome의 경우 CTRL+F5(Windows), CTRL-SHIFT-R(Mac))
+    ![](media/image58.png)
+
+2. Continue with Facebook 버튼을 클릭하여 Facebook Account 로그인 및 Token이 제대로 출력되는지 확인 합니다. 이 때 반드시 APP을 생성한 Facebook ID를 사용하여 로그인합니다.  다른 계정을 사용할 경우 권한 없음 에러가 나오고 더 이상 진행되지 않습니다. 다른 계정으로 로그인하여 더 이상 진행되지 않을 경우 Browser cache를 모두 삭제하고 로그인을 다시 진행하실 수 있습니다. (크롬의 경우 개발자도구 > Application > Clear Storage를 통해 browser cache 및 데이터를 삭제할 수 있습니다. )
+
+#### NWJS로 테스트하기
+1. 위에서와 같이 NWJS를 통해 nw_app을 실행합니다. 이미 실행된 nw_app에서 테스트한다면 Mouse 우클릭으로 앱 다시로드를 진행하여 업데이트된 oauth.html, OAuth.js를 로딩하도록 합니다.
+    ![](media/image59.png)
+
+2. Continue With Facebook 버튼을 클릭하여 Login이 제대로 진행되고 Cognito Identity ID로 매핑된 결과가 출력되는지 확인합니다. 이 때 반드시 APP을 생성한 Facebook ID를 사용하여 로그인합니다.  다른 계정을 사용할 경우 권한 없음 에러가 나오고 더 이상 진행되지 않습니다. 다른 계정으로 로그인하여 더 이상 진행되지 않을 경우 Browser cache를 모두 삭제하고 로그인을 다시 진행하실 수 있습니다. (개발자도구 > Application > Clear Storage를 통해 browser cache 및 데이터를 삭제할 수 있습니다. )
 Lab2. S3와 Cloudfront로 클라이언트 배포 서비스 제작하기
 =======================================================
 
@@ -595,13 +714,13 @@ Cognito 인증 사용자에게 필요한 권한을 추가하는 작업이 필요
 
 3.  Role name중 Cognito 생성시에 함께 생성된 Coginto_XXX_Auth_role을 선택합니다.
 
-    ![](media/image44.png)
+    ![](media/image67.png)
 
 4.  Permission Tab에서 policy를 확장하고 Edit policy버튼을 눌러 다음 코드를
     입력합니다. 코드 입력시에 <bucket_name>항목을 생성한 bucket이름으로
     설정합니다.
 
-    ![](media/image45.png)
+    ![](media/image68.png)
 ```json
 {
     "Version": "2012-10-17",
@@ -649,7 +768,7 @@ S3 버킷에 클라이언트 업데이트용 path 추가하기
 위에서 생성한 S3 bucket에 클라이언트 배포를 위한 folder를 추가합니다. 여기서는
 update라는 path를 사용합니다.
 
-![](media/image46.png)
+![](media/image69.png)
 
 테스트하기
 ----------
@@ -665,30 +784,30 @@ update라는 path를 사용합니다.
     애플리케이션이 patch 폴더 및의 파일과 subfolder들을 탐색하여 업데이트 내용을
     체크합니다. patch 폴더에 version.json파일이 생성된 것을 확인합니다.
 
-    ![](media/image47.png)
+    ![](media/image70.png)
   
-    ![](media/image48.png)
+    ![](media/image71.png)
 
 4.  체크가 완료되면 upload 버튼을 눌러 s3에 업데이트된 파일들을 업로드 합니다.
     업로드가 완료되면 Patch 폴더에 filedb.db 파일이 업데이트 된것을 확인합니다.
     이 filedb.db에는 s3에 object를 업로드하면서 확인받은 s3 version_id가
     포함되어 있습니다.
 
-    ![](media/image49.png)
+    ![](media/image72.png)
 
 5.  애플리케이션이 자동으로 cloudfront distribution에 version.json파일을
     invalidate 합니다. 이 과정은 10초에서 1분 정도 걸릴 수 있습니다.
     Invalidation이 완료되면 application에 완료 메시지가 출력됩니다.
 
-    ![](media/image50.png)
+    ![](media/image73.png)
 
 6.  Update 버튼을 클릭하여 version을 체크하고 업데이트된 파일을 다운받습니다.
 
-    ![](media/image51.png)
+    ![](media/image74.png)
 
 7.  nw_app의 resources folder에서 파일이 업데이트된 것을 확인합니다.
 
-    ![](media/image52.png)
+    ![](media/image75.png)
 
 8.  Patch 폴더에 파일을 추가하거나 파일 내용을 변경하여 업데이트된 파일만 패치가
     이루어지는지 확인합니다.
@@ -717,14 +836,14 @@ IAM role
 
 3.  Create role 버튼을 클릭하여 역할 추가 페이지로 들어갑니다.
 
-    ![](media/image53.png)
+    ![](media/image76.png)
 
 4.  Lambda 서비스를 선택하고, **Next: Permissions** 버튼을 클릭합니다.
 
 5.  **AmazonDynamoDBFullAccess, AWSLambdaDynamoDBExecutionRole** 2가지 역할을
     선택합니다. **Next: Review**를 클릭하여 진행합니다
 
-    ![](media/image54.png)
+    ![](media/image77.png)
 
 6.  **Role name**에는 gamescore-update-role을 입력한 뒤 **Create role**을
     클릭하여 완료합니다.
@@ -733,7 +852,7 @@ IAM role
     **AmazonDynamoDBReadOnlyAccess, AWSLambdaInvocation-DynamoDB** 를
     선택합니다.
 
-    ![](media/image55.png)
+    ![](media/image78.png)
 
 DynamoDB
 --------
@@ -746,32 +865,32 @@ DynamoDB
     name은 DemoUserScore, Primary key에는 username을 입력하고 Create를
     클릭합니다.
 
-    ![](media/image56.png)
+    ![](media/image79.png)
 
 3.  Table 생성이 완료되면 Manage Stream을 활성화합니다. Manage Stream을 선택한
     뒤 View type은 New and old images를 선택하고 Enable을 클릭합니다. 다음과
     같이 Stream이 활성화됩니다.
 
-    ![](media/image57.png)
+    ![](media/image80.png)
 
 4.  샘플데이터를 생성해줍니다. Items에서 Create item을 클릭합니다.
 
-    ![](media/image58.png)
+    ![](media/image81.png)
 
 5.  + 버튼을 클릭한 뒤 Append를 선택하고 Number를 선택합니다. 다음과 같이
     입력한 뒤 Save합니다.
 
-    ![](media/image59.png)
+    ![](media/image82.png)
 
-3.  동일한 방법으로 게임 스코어 히스토리를 기록할 두 번째 테이블을 생성합니다.
+6.  동일한 방법으로 게임 스코어 히스토리를 기록할 두 번째 테이블을 생성합니다.
     Table name은 DemoScoreHistory로 지정하고 Primary key는 score를 Number
     타입으로 생성합니다. Stream을 활성화 할 필요는 없습니다.
 
-    ![](media/image60.png)
+    ![](media/image83.png)
 
-4.  다음의 정보로 Item을 생성해줍니다.
+7.  다음의 정보로 Item을 생성해줍니다.
 
-    ![](media/image61.png)
+    ![](media/image84.png)
 
 Lambda 함수 설정하기
 --------------------
@@ -782,7 +901,7 @@ Lambda 함수 설정하기
 
 3.  Create function 을 선택한 뒤 Author from scratch 버튼을 클릭합니다.
 
-    ![](media/image62.png)
+    ![](media/image85.png)
 
 4.  Trigger는 현재 단계에서는 추가하지 않습니다. 바로 Next를 클릭하여 다음
     단계로 진행합니다
@@ -900,7 +1019,7 @@ exports.handler = function(event, context) {
     **DemoUserScore**를 선택하고 **Starting position**은 **Trim horizon**을
     선택합니다**. Enable trigger**에 체크한 뒤 Next를클릭합니다.
 
-    ![](media/image63.png)
+    ![](media/image86.png)
 
 10. 다음의 정보를 입력하여 생성합니다. 이번에는 Python으로 작업해봅니다.
 
@@ -962,7 +1081,7 @@ API Gateway
     에서 생성했던 API에서 Actions드롭다운메뉴에서 **Create Resource** 메뉴를
     선택합니다.
 
-    ![](media/image64.png)
+    ![](media/image87.png)
 
 3.  Resource Name에 scoreboard를 입력하고 **Enable API Gateway CORS**를 체크한
     뒤 **Create Resource**를 진행합니다.
@@ -970,48 +1089,48 @@ API Gateway
 4.  동일한 방법으로 scorehistory도 생성합니다. 이 때 Resource Path에 주의합니다.
     다음과 같이 두 개의 리소스를 생성한 뒤 다음으로 진행합니다.
 
-    ![](media/image65.png)
+    ![](media/image88.png)
 
 5.  Method 생성을 진행합니다. /scoreboard 리소스를 선택하고 Actions의 Create
     Method를 선택합니다.
 
 6.  GET을 선택한 뒤 체크 버튼을 클릭합니다.
 
-    ![](media/image66.png)
+    ![](media/image89.png)
 
 7.  **Lambda Region**은 Lambda를 생성한 리전을 선택하고 **Lambda Function**은
     앞서 생성한 GetUserScore를 입력합니다. **Save**를 클릭합니다.
 
-    ![](media/image67.png)
+    ![](media/image90.png)
 
 8.  위와 같은 방식으로 /scoreboard의 **POST**에는 PutUserScore 함수를
     /scorehistory의 **GET**에는 GetScoreHistory를 설정해줍니다.
 
-    ![](media/image68.png)
+    ![](media/image91.png)
 
 9.  scoreboard 리소스를 선택한 뒤 Actions의 Enable CORS 메뉴를 선택합니다.
     옵션은 변경하지 않고 **Enable CORS and replace existing CORS headers**
     버튼을 클릭하고 **Yes, replace existing values** 버튼을 차례로 클릭합니다.
     동일한 방법으로 scorehistory 리소스도 진행합니다.
 
-    ![](media/image69.png)
+    ![](media/image92.png)
 
 10. 생성한 API를 배포해줍니다. 상위 경로 / 를 선택한 뒤 Actions의 Deploy API
     메뉴를 클릭합니다.
     
-    ![](media/image70.png)
+    ![](media/image93.png)
 
 11. Deployment stage는 Lab1에서 사용하였던 prod를 선택한 뒤 Deploy 버튼을
     클릭합니다.
 
-    ![](media/image71.png)
+    ![](media/image94.png)
 
 12. 생성된 Invoke URL은 뒤의 게임 client설정에 필요합니다.
 
 13. 진행을 완료하면 Lambda에서 앞서 Trigger를 설정하지 않은 PutUserScore,
     GetUserScore, GetScoreHistory에 Trigger가 추가된 것을 확인할 수 있습니다.
 
-    ![](media/image72.png)
+    ![](media/image95.png)
 
 애플리케이션 설정 및 테스트
 ---------------------------
@@ -1022,7 +1141,7 @@ API Gateway
 1.  nw_app의 script폴더의 config.json파일에 scorehistory, scoreboard API의
     Endpoint URL을 설정합니다.(API resource path까지 포함하여 설정하여야 합니다. 혹은 Lambda 함수의 Trigger 항목에서 method를 클릭하면 나오는 Invoke URL을 사용하셔도 됩니다.)
 
-    ![](media/image73.png)
+    ![](media/image96.png)
 ```json
 {
     "bucketname":"<s3 bucket name>", 
@@ -1044,11 +1163,11 @@ API Gateway
     score board가 출력되는지, View Score statistics 링크를 클릭하여 score
     history가 정상적으로 출력되는지 확인합니다.
 
-    ![](media/image74.png)
+    ![](media/image97.png)
     
-    ![](media/image75.png)
+    ![](media/image98.png)
 
-    ![](media/image76.png)
+    ![](media/image99.png)
 
 리소스 정리하기
 ===============

@@ -7,17 +7,19 @@ var AWS = nw.require('aws-sdk')
 var download = nw.require('download-file')
 //var output = $('#output')
 var kakao_token;
-var kakao_user_profile;
+var user_profile;
 var expires_in;
 var files;
 var CONFIG = nw.require("./script/config.json")
 var bucketname=CONFIG.bucketname;
 var uploadprefix=CONFIG.uploadprefix;
 var region=CONFIG.region;
+AWS.config.region =region;
 var api_url=CONFIG.api_url;
 var cf_distribution_id = CONFIG.cloudfrontDistributionId;
 var cf_url = CONFIG.cloudfrontURL;
 var IdentityPoolId= CONFIG.IdentityPoolId;
+var cognitoidentity = new AWS.CognitoIdentity();
 var resourcepath = nw.__dirname + path.sep + "resources" + path.sep
 var patchpath = nw.__dirname + path.sep + "patch" + path.sep
 var dir = nw.require('node-dir')
@@ -59,15 +61,17 @@ function cognitoSyncUpdate(dataset_base,key,value_to_update)
         cognitoSync.openOrCreateDataset(dataset_base,function(err,dataset){
             dataset.get(key,function(err,value){
                 if (err) console.log(err)
-                var svr_kakao_profile; 
-                if (value != undefined) svr_kakao_profile = JSON.parse(value)
-                if (svr_kakao_profile != undefined)
+                var svr_profile; 
+                if (value != undefined) svr_profile = JSON.parse(value)
+                if (svr_profile != undefined)
                 {
                     //compare svr_kakao_profile
-                    console.log(svr_kakao_profile)
-                    if (svr_kakao_profile.id != kakao_user_profile.id)
+                    console.log(svr_profile)
+                    if (svr_profile.id != user_profile.id)
                     {
-                        console.log("kakao profile id mismatch....")
+                        console.log("profile id mismatch....")
+                        console.log(svr_profile)
+                        console.log(user_profile)
                     }
                 }
                 dataset.put(key,value_to_update,function(err,record){
@@ -147,9 +151,9 @@ $(window).on('message',  function(e){
         }
         case "kakao_user_profile":
         {
-            kakao_user_profile = data.val;
-            console.log(kakao_user_profile.id)
-            var api_gw_req = api_url+"?id="+kakao_user_profile.id+"&access_token=" + kakao_token + "&expires_in=" + expires_in;
+            user_profile = data.val;
+            console.log(user_profile.id)
+            var api_gw_req = api_url+"?id="+user_profile.id+"&access_token=" + kakao_token + "&expires_in=" + expires_in;
             $.getJSON(api_gw_req, function(json){
                 console.log(json.Token)
                 AWS.config.region=region;
@@ -173,9 +177,10 @@ $(window).on('message',  function(e){
                         // create service object with given credentials.
                         s3 = new AWS.S3({region:region})
                         cf = new AWS.CloudFront()
-                        $('#output').append(`You logged in as : KAKAO: ${kakao_user_profile.properties.nickname}<br/>`)
-                        cognitoSync = new AWS.CognitoSyncManager()
-                        cognitoSyncUpdate("gamingonAWS","KakaoUserProfile",JSON.stringify(kakao_user_profile))
+                        $('#output').append(`You logged in as : KAKAO: ${user_profile.properties.nickname}, cognitoIdentityId:${AWS.config.credentials.data.IdentityId}<br/>`)
+                        cognitoSync = new AWS.CognitoSyncManager();
+                        user_profile["authProvider"]="Kakao";
+                        cognitoSyncUpdate("gamingonAWS","UserProfile",JSON.stringify(user_profile))
 
                     }
                 })
@@ -183,6 +188,75 @@ $(window).on('message',  function(e){
             });
 
             break;                      
+        }
+        case "FB_token":
+        {
+            var authobj = data.val;
+            console.log(authobj);
+            AWS.config.region=region;
+            AWS.config.credentials = new AWS.CognitoIdentityCredentials(
+                {
+                    IdentityPoolId:IdentityPoolId,
+                    region: region,
+                    Logins:{
+                        'graph.facebook.com':authobj.access_token
+                    }
+                }
+                
+            )
+            cognito_token = authobj.access_token;
+            AWS.config.credentials.get(function(err){
+                if(err) console.log(err)
+                else {
+                    console.log(AWS.config.credentials)  
+                    // create service object with given credentials.
+                    s3 = new AWS.S3({region:region})
+                    cf = new AWS.CloudFront()
+                    user_profile = authobj.userprofile
+                    cognito_id = AWS.config.credentials.data.IdentityId
+                    $('#output').append(`You logged in as : FB: ${authobj.userprofile.properties.nickname}, cognitoIdentityId:${AWS.config.credentials.data.IdentityId}<br/>`)
+                    //console.log(AWS.config.credentials.data.IdentityId);
+                    cognitoSync = new AWS.CognitoSyncManager();
+                    user_profile["authProvider"]="FaceBook";
+                    cognitoSyncUpdate("gamingonAWS","UserProfile",JSON.stringify(user_profile))
+
+                }
+            })
+            break;
+        }
+        case "Google_token":
+        {
+            var authobj = data.val;
+            console.log(authobj);
+            AWS.config.region=region;
+            AWS.config.credentials = new AWS.CognitoIdentityCredentials(
+                {
+                    IdentityPoolId:IdentityPoolId,
+                    region: region,
+                    Logins:{
+                        'accounts.google.com':authobj.id_token
+                    }
+                }
+            )
+            cognito_token = authobj.id_token;
+            AWS.config.credentials.get(function(err){
+                if(err) console.log(err)
+                else {
+                    console.log(AWS.config.credentials)  
+                    // create service object with given credentials.
+                    s3 = new AWS.S3({region:region})
+                    cf = new AWS.CloudFront()
+                    user_profile = authobj.userprofile;
+                    cognito_id = AWS.config.credentials.data.IdentityId;
+                    $('#output').append(`You logged in as : Google: ${authobj.userprofile.properties.nickname}, cognitoIdentityId:${AWS.config.credentials.data.IdentityId}<br/>`)
+                    //console.log(AWS.config.credentials.data.IdentityId);
+                    cognitoSync = new AWS.CognitoSyncManager();
+                    user_profile["authProvider"]="Google";
+                    cognitoSyncUpdate("gamingonAWS","UserProfile",JSON.stringify(user_profile))
+
+                }
+            })
+            break;   
         }
         default:
         {
@@ -308,6 +382,16 @@ $('#kakao-login').bind('click',function(event)
     iframewindow.contentWindow.postMessage("kakao_login","*")
 })    
 
+$('#FB-login').bind('click',function(event){
+    var iframewindow = document.getElementById("oauthlogin")
+    iframewindow.contentWindow.postMessage("FB_login","*")
+})
+
+$('#Google-login').bind('click',function(event){
+    var iframewindow = document.getElementById("oauthlogin")
+    iframewindow.contentWindow.postMessage("Google_login","*")
+})
+
 $('#checkfiles').bind('click',function(event){
     dir.files(patchpath, function(err,files){
         asyncLoop(files, function(item,next){
@@ -426,7 +510,7 @@ function fileupload(value,key,map){
 
 $('#upload').bind('click',function(event){
     //console.log(AWS.config.credentials)
-    if ( kakao_user_profile == undefined) {
+    if ( user_profile == undefined) {
         alert("Please login first")
         return
     }
@@ -585,7 +669,7 @@ $('#launch').bind('click',function(event){
             
             gamewin.on('loaded',function(){
                 //gamewin.window.cognito_token = cognito_token
-                gamewin.eval(null,'login("'+cognito_token+'","'+cognito_id+'")')
+                gamewin.eval(null,'login("'+cognito_token+'","'+cognito_id+'","'+user_profile.authProvider+'")')
                 this.focus()
             })  
             gamewin.on('closed',function(){

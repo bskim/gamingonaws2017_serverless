@@ -9,72 +9,232 @@
 <script src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
 <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
 <script src="./script/OAuth.js"></script>
-
+<script src="//apis.google.com/js/platform.js?onload=googleinit" async defer></script>
 </head>
 <body>
-    <div>
-        <a id="custom-login-btn" href="javascript:loginWithKakao(loginWithCognito)"><img src="//mud-kage.kakao.com/14/dn/btqbjxsO6vP/KPiGpdnsubSq3a0PHEGUK1/o.jpg" width="300"/></a>
-        <a href="http://developers.kakao.com/logout"></a>
-        <script type='text/javascript'>
-            //import CONFIG from './script/OAuth.json'
-            var KakaoAppId= CONFIG.KakaoAppId
-            var API_URL= CONFIG.API_URL
-            function loginWithCognito(kakaoid,access_token,expires_in){
-                var cognitoURL = API_URL+ "?id="+kakaoid +"&access_token=" + access_token + "&expires_in=" + expires_in;
-                $.getJSON(cognitoURL, function(json){
-                    $("#cognito-token").append(json.Token);
-                    //window.top.postMessage({"msg_key":"cognito_token", "val":json.Token},'*')
-                  });
+  <div>
+      <a id="custom-login-btn" href="javascript:loginWithKakao(loginWithCognito)"><img src="//mud-kage.kakao.com/14/dn/btqbjxsO6vP/KPiGpdnsubSq3a0PHEGUK1/o.jpg" width="300"/></a>
+      <a href="http://developers.kakao.com/logout"></a>
+      <br/>
+      <a id="custom-google-login-btn" href="javascript:loginwithGoogle()"><img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png"/></a>
+      <script type='text/javascript'>
+      </script>
+      <br>
 
-            }
-            Kakao.init(KakaoAppId); // replace you application ID
-            var kakaoid =''
-            function loginWithKakao(callback) {
-              // 로그인 창을 띄웁니다.
-              Kakao.Auth.login({
-                success: function(authObj) {
-                  //alert(JSON.stringify(authObj));
-                  var access_token = authObj.access_token;
-                  var expires_in = authObj.expires_in;
+      <div class="fb-login-button" data-max-rows="1" data-size="large" data-button-type="continue_with" data-show-faces="false" data-auto-logout-link="false" data-use-continue-as="false" data-onlogin="checkLoginState()"></div>
+      <div class="google-login-button"></div>
+      <hr>
+      Login Token: <div id="token"></div> <hr>
+      User string: <div id="user"></div> <hr>
+      Cognito Access Token: <div id="cognito-token"></div> <br>
+  </div>
+  <script>
+    window.fbAsyncInit = function() {
+      FB.init({
+        appId            : CONFIG.fbAppId,
+        autoLogAppEvents : true,
+        xfbml            : true,
+        version          : 'v3.0'
+      });
+      FB.getLoginStatus(function(response) {
+        if (response.status === 'connected') {
+            //display user data
+            console.log("alreay logged_in")
+        }
+      });
+    };
+  
+    (function(d, s, id){
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement(s); js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+  
+    function googleinit(){
+      gapi.load('auth2',
+      function(){
+        //ready
+        gapi.auth2.init({
+          client_id: CONFIG.googleAPIclientID,
+  
+        }).then(function(sucess){
+            console.log("google auth initialized")
+          },
+          function(error){
+  
+          })
+      })
+    }
+    function statusChangeCallback(response) {
+      console.log('statusChangeCallback');
+      console.log(response);
+      // The response object is returned with a status field that lets the
+      // app know the current login status of the person.
+      // Full docs on the response object can be found in the documentation
+      // for FB.getLoginStatus().
+      if (response.status === 'connected') {
+        // Logged into your app and Facebook.
+        console.log("connected")
+        var uid = response.authResponse.userID;
+                var accessToken = response.authResponse.accessToken;
+                var expiresIn = response.authResponse.expiresIn;
+                //console.log(response)
+                $("#token").append("FB: "+JSON.stringify(response)+"<br/>");
+                FB.api('/me',function(response){
+                  var username = response.name
+                  //console.log(response)
+                  $("#user").append("FB: "+JSON.stringify(response)+"<br/>");
+                  console.log ("uid:"+uid+",authtoken:"+accessToken+",username:"+username+",expiresIn:"+expiresIn);
+                  window.top.postMessage({"msg_key":"FB_token","val":{"access_token":accessToken,"expires_in":expiresIn,"userprofile":{"id":uid,"properties":{"nickname":username}}}},"*");
                   
-                  Kakao.API.request({
-                    url: '/v1/user/me',
-                    success: function(res){
-                      console.log(res)
-                      kakaoid =res.id
-                      window.top.postMessage({"msg_key":"kakao_user_profile","val":res},'*')
-                      $("#kakao-user").append(JSON.stringify(res));
-                      if (callback!=undefined)
-                      {
-                        callback(kakaoid,access_token,expires_in)
-                      }
-                    }
-                  })
-                  //replace it to your api gateway rul
-                  $("#kakao-token").append(authObj.access_token);
-                  window.top.postMessage({"msg_key":"kakao_token", "val":{"access_token":authObj.access_token,"expires_in":authObj.expires_in}},'*');                  
-                  
-                },
-                fail: function(err) {
-                  alert(JSON.stringify(err));
-                }
-              });
-            };
-
-            window.onmessage = function(e){
-              if (e.data == "kakao_login")
+                })
+        } else {
+        // The person is not logged into your app or we are unable to tell.
+        console.log("not connected")
+      }
+    }
+  
+    function checkLoginState(){
+      FB.getLoginStatus(function(response) {
+        statusChangeCallback(response);
+      });
+    }
+  
+    //import CONFIG from './script/OAuth.json'
+    var KakaoAppId= CONFIG.KakaoAppId
+    var API_URL= CONFIG.API_URL
+    function loginWithCognito(kakaoid,access_token,expires_in){
+        var cognitoURL = API_URL+ "?id="+kakaoid +"&access_token=" + access_token + "&expires_in=" + expires_in;
+        $.getJSON(cognitoURL, function(json){
+            $("#cognito-token").append(json.Token+"<br/>");
+            //window.top.postMessage({"msg_key":"cognito_token", "val":json.Token},'*')
+          });
+  
+    }
+    Kakao.init(KakaoAppId); // replace you application ID
+    var kakaoid =''
+    function loginWithKakao(callback) {
+      // 로그인 창을 띄웁니다.
+      Kakao.Auth.login({
+        success: function(authObj) {
+          //alert(JSON.stringify(authObj));
+          var access_token = authObj.access_token;
+          var expires_in = authObj.expires_in;
+          
+          Kakao.API.request({
+            url: '/v1/user/me',
+            success: function(res){
+              console.log(res)
+              kakaoid =res.id
+              window.top.postMessage({"msg_key":"kakao_user_profile","val":res},'*')
+              $("#user").append("KaKao: "+JSON.stringify(res)+"<br/>");
+              if (callback!=undefined)
               {
-                loginWithKakao();
+                callback(kakaoid,access_token,expires_in)
               }
             }
-          //]]>
-        </script>
-        <br>
-        <hr>
-        Kakao Login Token: <div id="kakao-token"></div> <hr>
-        Kakao User string: <div id="kakao-user"></div> <hr>
-        Cognito Access Token: <div id="cognito-token"></div> <br>
-    </div>
+          })
+          //replace it to your api gateway rul
+          $("#token").append("KaKao: "+authObj.access_token+"<br/>");
+          window.top.postMessage({"msg_key":"kakao_token", "val":{"access_token":authObj.access_token,"expires_in":authObj.expires_in}},'*');                  
+          
+        },
+        fail: function(err) {
+          alert(JSON.stringify(err));
+        }
+      });
+    };
+  
+    function loginwithFB(callback){
+  
+      FB.getLoginStatus(function(response){
+        if (response.status === 'connected')
+        {
+          var uid = response.authResponse.userID;
+          var accessToken = response.authResponse.accessToken;
+          var expiresIn = response.authResponse.expiresIn;
+          //console.log(response)
+          $("#token").append("FB: "+JSON.stringify(response)+"<br/>");
+          FB.api('/me',function(response){
+            var username = response.name
+            //console.log(response)
+            $("#user").append("FB: "+JSON.stringify(response)+"<br/>");
+            console.log ("uid:"+uid+",authtoken:"+accessToken+",username:"+username+",expiresIn:"+expiresIn);
+            window.top.postMessage({"msg_key":"FB_token","val":{"access_token":accessToken,"expires_in":expiresIn,"userprofile":{"id":uid,"properties":{"nickname":username}}}},"*");
+            
+          })
+        }else
+        {
+          FB.login(function(response){
+            if(response.status === 'connected'){
+              var uid = response.authResponse.userID;
+              var accessToken = response.authResponse.accessToken;
+              var expiresIn = response.authResponse.expiresIn;
+              //console.log(response)
+              $("#token").append("FB: "+JSON.stringify(response)+"<br/>");
+              FB.api('/me',function(response){
+                var username = response.name
+                //console.log(response)
+                $("#user").append("FB: "+JSON.stringify(response)+"<br/>");
+                console.log ("uid:"+uid+",authtoken:"+accessToken+",username:"+username+",expiresIn:"+expiresIn);
+                window.top.postMessage({"msg_key":"FB_token","val":{"access_token":accessToken,"expires_in":expiresIn,"userprofile":{"id":uid,"properties":{"nickname":username}}}},"*");
+                
+              })
+            }else{
+              console.log(JSON.stringify(response));                  
+              FB.logout(function(response){
+                console.log("logout"+JSON.stringify(response));
+              })
+            }
+          })
+        }
+      })
+    }
+    function loginwithGoogle(callback)
+    {
+      gapi.auth2.getAuthInstance().signIn().then(
+        function(success){
+          var currentuser = gapi.auth2.getAuthInstance().currentUser.get();
+  
+          var profile = currentuser.getBasicProfile();
+          var authobj = currentuser.getAuthResponse();
+          $("#user").append("Google: "+JSON.stringify(profile)+"<br/>");
+          $("#token").append("Google: "+JSON.stringify(authobj)+"<br/>");
+          window.top.postMessage({
+            "msg_key":"Google_token","val":{
+              "id_token":authobj.id_token,
+              "expires_in":authobj.expires_in,
+              "userprofile":{
+                "id":profile.getId(),
+                "properties":{
+                  "nickname":profile.getName()
+                }
+              }
+            }
+          },"*")
+        },
+        function(error){
+  
+        }
+      )
+    }
+    window.onmessage = function(e){
+      if (e.data == "kakao_login")
+      {
+        loginWithKakao();
+      }
+      else if (e.data =="FB_login")
+      {
+        loginwithFB();
+      }
+      else if (e.data=="Google_login")
+      {
+        loginwithGoogle();
+      }
+    }
+  </script>
 </body>
 
 </html>

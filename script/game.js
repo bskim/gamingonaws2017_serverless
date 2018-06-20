@@ -6,20 +6,27 @@ var CONFIG = nw.require("./script/config.json")
 var region=CONFIG.region;
 var IdentityPoolId= CONFIG.IdentityPoolId;
 var score_api_url = CONFIG.score_api_url;
-var kakao_user_profile;
+var user_profile;
 var cognito_token;
-
-function login(Token,Id)
+var authconfig ={
+    "Google":"accounts.google.com",
+    "Kakao":"cognito-identity.amazonaws.com",
+    "FaceBook":"graph.facebook.com"
+}
+function login(Token,Id,authProvider)
 {
+    var logins ={};
+    logins[authconfig[authProvider]] = Token;
+    console.log(logins)
+    console.log(Id)
+    console.log(Token)
     AWS.config.region=region;
     AWS.config.credentials = new AWS.CognitoIdentityCredentials(
         {
             IdentityPoolId:IdentityPoolId,
             IdentityId: Id,
             region: region,
-            Logins:{
-                'cognito-identity.amazonaws.com':Token
-            }
+            Logins:logins
         }
     )
     AWS.config.credentials.get(function(err){
@@ -28,14 +35,15 @@ function login(Token,Id)
             var client = new AWS.CognitoSyncManager()
             client.openOrCreateDataset("gamingonAWS",function(err,dataset){
                 if (err) console.log(err)
-                dataset.get("KakaoUserProfile",function(err,value){
+                dataset.get("UserProfile",function(err,value){
                     if (err) console.log(err)
-                    var svr_kakao_profile; 
-                    if (value != undefined) svr_kakao_profile = JSON.parse(value)
-                    if (svr_kakao_profile != undefined)
+                    var svr_profile; 
+                    if (value != undefined) svr_profile = JSON.parse(value)
+                    if (svr_profile != undefined)
                     {
-                       $('#my-signin').append(svr_kakao_profile.properties.nickname)
-                       kakao_user_profile = svr_kakao_profile
+                       console.log(svr_profile)
+                       $('#my-signin').append(svr_profile.properties.nickname + " from " + svr_profile.authProvider)
+                       user_profile = svr_profile
                     }
                 })
             })
@@ -147,7 +155,7 @@ function drawFrame(){
             ctx.stroke();
             previousPosition=position;
             
-            if ( kakao_user_profile != undefined)
+            if ( user_profile != undefined)
             {
                 setState(0);
             }
@@ -286,7 +294,7 @@ function drawFrame(){
                 ctx.fillText("score: "+score,5,315);
                				
 				var newScore = {
-					"username": kakao_user_profile.properties.nickname,
+					"username": user_profile.properties.nickname,
 					"score": score
 				};
 					
