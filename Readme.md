@@ -41,7 +41,6 @@ CognitoSync를 통한 사용자 데이터 저장 기능을 제공합니다. Clou
 
 AWS 계정
 --------
-
 본 워크샵을 진행하려면 AWS 계정을 준비해야 합니다. AWS IAM, S3, DynamoDB,
 Lambda, API Gateway, Cloudfront 및 Cognito에 접근할 수 있어야 하며, 본 가이드는
 한명이 하나의 AWS 계정을 사용한다고 가정합니다. 다른 사람과 계정을 공유할 경우
@@ -55,30 +54,35 @@ Lambda, API Gateway, Cloudfront 및 Cognito에 접근할 수 있어야 하며, �
 
 카카오 디벨로퍼 계정
 --------------------
-
 카카오톡 인증 연동을 위하여 KakaoTalk Developer 계정이 필요합니다. 상세한 내용은
 [Kakao Developers 페이지](https://dev.kakao.com/)를 참조하십시오.
 
 Google 디벨로퍼 계정
 --------------------
-
 구글 인증 연동을 위하여 Google Developer 계정이 필요합니다. 상세한 내용은 [Google Developers 페이지](https://console.developers.google.com/)를 참조하십시오
 
 Facebook 디벨로퍼 계정
 --------------------
-
 Facebook 인증 연동을 위하여 Facebook Developer 계정이 필요합니다. 상세한 내용은 [Facebook Developers 페이지](https://developers.facebook.com/)를 참조하십시오.
 
 
 텍스트 에디터
 -------------
-
 설정 파일의 업데이트를 하기 위하여 로컬 텍스트 편집기가 필요합니다.
 
 NW.JS
 -----
+NW.JS
+본 워크샵에서 사용하는 데스크탑 애플리케이션은 NW.JS로 구현되었습니다. 소스코드의 nwjs_sdk 폴더에 함께 포함된 NW.JS를 압축을 해제하여 사용합니다. Windows의 경우 nwjs-sdk-v0.25.0-win-x64.zip, Mac의 경우 nwjs-sdk-v0.25.0-osx-x64.zip 파일입니다. 이 애플리케이션은 v0.25.0에서 개발되고 테스트되었습니다.
 
-본 워크샵에서 사용하는 데스크탑 애플리케이션은 NW.JS로 구현되었습니다. nwjs.io 에서 NW.JS를 다운받아 설치합니다. 이 애플리케이션은 v0.25.0에서 개발되고 테스트되었습니다.
+소스코드
+-------
+실습에 사용할 소스코드는 https://github.com/bskim/gamingonaws2017_serverless에서 확인하실 수 있습니다. Git clone이나 download받아 압축을 해제하여 사용합니다. 소스코드를 nw_app이라는 폴더에 해제했다는 가정하에 실습모듈을 설명합니다.
+
+유의사항
+-------
+스크린샷에서 보이는 AWS Management console 및 다른 페이지들의 UI들이 UI 개선 작업에 의하여 변경되었을 수 있습니다. 스크린샷은 실습시 참고용도로 활용하시기 바랍니다.
+
 
 실습 모듈
 =========
@@ -921,14 +925,14 @@ var AWS = require('aws-sdk');
 var DOC = require('dynamodb-doc');
 var dynamo = new DOC.DynamoDB();
 
-exports.handler = function(event, context){ 
+exports.handler = function(event, context) {
     console.log(JSON.stringify(event.username));
-
+  
 
     var cb = function(err, data) {
         if(err) {
             console.log(err);
-            context.fail('unable to update users at this time');
+            context.fail("unable to update users at this time");
         } else {
             console.log(data);
             context.done(null, data);
@@ -938,8 +942,8 @@ exports.handler = function(event, context){
     var item = {
         username: event.username,
         score: event.score
-    };
-    
+      };
+      
     dynamo.putItem({TableName:"DemoUserScore", Item:item}, cb);
     
 };
